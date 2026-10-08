@@ -140,7 +140,8 @@ function cfg(){try{return{key:localStorage.getItem('fk_key')||'',model:localStor
 async function call(msgs,o){o=o||{};var c=cfg(),d=!!c.key,hd={'content-type':'application/json'};
 if(d){hd['x-api-key']=c.key;hd['anthropic-version']='2023-06-01';hd['anthropic-dangerous-direct-browser-access']='true'}
 var ac=new AbortController(),tm=setTimeout(function(){ac.abort()},120000),r;
-try{r=await fetch(d?'https://api.anthropic.com/v1/messages':'/api/messages',{method:'POST',headers:hd,signal:ac.signal,body:JSON.stringify({model:c.model,max_tokens:o.max||4000,stream:true,messages:msgs})})}catch(e){clearTimeout(tm);var n=new Error('net');n.code='net';throw n}
+try{r=await fetch(d?'https://api.anthropic.com/v1/messages':'/api/messages',{method:'POST',headers:hd,signal:ac.signal,body:JSON.stringify({model:c.model,max_tokens:o.max||8000,stream:true,messages:msgs})})}catch(e){clearTimeout(tm);var n=new Error('net');n.code='net';throw n}
+if(!d&&(r.headers.get('content-type')||'').indexOf('text/event-stream')<0){clearTimeout(tm);var e0=new Error('nokey');e0.code='nokey';throw e0}
 if(!r.ok){clearTimeout(tm);var e=new Error('http');e.code=r.status==429?'rate_limited':(r.status==401||r.status==403||(r.status==404||r.status==500)&&!d)?'nokey':'error';throw e}
 var rd=r.body.getReader(),dc=new TextDecoder(),buf='',txt='';
 try{for(;;){var x=await rd.read();if(x.done)break;buf+=dc.decode(x.value,{stream:true});var ls=buf.split('\n');buf=ls.pop();
